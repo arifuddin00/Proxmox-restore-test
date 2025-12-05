@@ -150,10 +150,10 @@ restore_vm() {
     echo "=============================="
 
     # --- Cleanup VM ---
-        echo "Cleaning up VM $new_vmid"
-        qm stop $new_vmid &>/dev/null
-        sleep 15
-        qm destroy $new_vmid
+    echo "Cleaning up VM $new_vmid"
+    qm stop $new_vmid &>/dev/null
+    sleep 15
+    qm destroy $new_vmid
 
     echo "Restore/test completed for VMID $source_vmid -> new VMID $new_vmid [$status]"
     echo "=============================="
