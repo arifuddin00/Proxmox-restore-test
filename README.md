@@ -9,7 +9,28 @@ This script is designed with the thought of being deployed on the same PVE as th
 ## Requirements
 * A Proxmox backup mounted as a storage 
 * mail
-* VLAN setup with DHCP
+* VLAN setup with DHCP enabled that specific VLAN
+* The restored VM needs to be able to get DHCP from the new network device being added.
+
+> You could use this with static ip addresses but then you have to stop the orginal VM before running the restore script, otherwise it would lead to ip conflicts. 
+
+> **Note:**  Make sure that the VM will ask for DHCP when presented with a new network device.
+I tested all my VMs by adding a new network device and see if it got a new ip address from DHCP.  
+I use static IP addresses on all my server and I solved it with this (netplan);  
+enp6s2 have static ip, but when a new network device being presented aka RestoreNet it will ask for DHCP.
+```
+    enp6s2:
+      match:
+        macaddress: {REDACTED}
+      set-name: {REDACTED}
+      addresses:
+      - 10.10.10.10/24
+    RestoreNet:
+      match:
+        macaddress: 6A:3F:9C:12:8B:EF //This is the mac address being used by the script
+      dhcp4: true
+```
+
 
 ---
 
@@ -69,10 +90,16 @@ Modify the variables at the top of the script:
 
 
 
-# ⚠️Make sure to configure your VLAN and DHCP scope before continuing
+# ⚠️Make sure to configure your VLAN and subnet has DHCP enabled before continuing
 This script uses as of right now the subnet `192.168.123.0/24` with the range of `192.168.123.200-250`
 Make sure to change this to your liking.
 The `VLAN_NET` should be without the last octet ex `192.168.111`
+
+This might work with the native VLAN on proxmox and the standard network setup, I havent tested it.
+
+Why use VLAN in the first place.  
+The scenario I was struggeling with is that when deploying the restored VM I had no idea what ip address the VM might get and it couldnt ping sweep my usual server net. It needed a separated net so nothing else answered by accident.
+
 ```
 VLAN_NET="192.168.123"               # /24 network for VLAN
 IP_RANGE_START=200                   # Ping sweep from 200
