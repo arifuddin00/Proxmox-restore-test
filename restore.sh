@@ -99,7 +99,7 @@ restore_vm() {
     echo "Assigning new VMID: $new_vmid"
 
     # --- Restore VM ---
-    qmrestore "$latest_backup" "$new_vmid" --storage "$TARGET_STORAGE" --unique --force
+    qmrestore "$latest_backup" "$new_vmid" --storage "$TARGET_STORAGE" --unique
     if [[ $? -ne 0 ]]; then
         echo "Restore failed for VMID $source_vmid"
         send_email "$new_vmid" "$source_vmid" "$latest_backup" "FAIL" "N/A" "N/A"
