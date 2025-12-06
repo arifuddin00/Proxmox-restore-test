@@ -9,7 +9,7 @@ PBS_STORAGE="Backups"                # The ID of the storage under Datacenter - 
 NEW_NIC_BRIDGE="vmbr0"               # Network bridge with VLAN aware
 NEW_NIC_VLAN=999                     # VLAN ID
 FIXED_MAC="6A:3F:9C:12:8B:EF"        # Bogus MAC
-VLAN_NET="192.168.123"               # /24 network for VLAN
+SUBNET="192.168.123.0/24"            # /24 subnet
 IP_RANGE_START=200                   # Ping sweep from 200
 IP_RANGE_END=250                     # Ping sweep to 250
 EMAIL_TO="example@example.com"
@@ -18,6 +18,10 @@ HALF_RAM_MIN=512                     # Minimum RAM in MB
 PING_TIMEOUT=2                       # seconds
 MAX_PING_WAIT=900                    # Max time to wait for VM to respond (seconds)
 SLEEP_INTERVAL=5                     # Interval between ping attempts
+
+
+SUBNET_BASE=$(echo "$SUBNET" | cut -d/ -f1 | awk -F. '{print $1"."$2"."$3}')
+
 
 # Enable logging to file and stdout
 exec &> >(tee -a "$LOGFILE")
@@ -63,9 +67,10 @@ detect_vm_ip() {
     echo "Waiting for VM to get IP and respond to ping..."
     while (( elapsed < timeout )); do
         for ip in $(seq $IP_RANGE_START $IP_RANGE_END); do
-            ping -c1 -W $PING_TIMEOUT $VLAN_NET.$ip &>/dev/null
+            candidate_ip="$SUBNET_BASE.$ip"
+            ping -c1 -W $PING_TIMEOUT "$candidate_ip" &>/dev/null
             if [[ $? -eq 0 ]]; then
-                vm_ip="$VLAN_NET.$ip"
+                vm_ip="$candidate_ip"
                 echo "VM is responding at $vm_ip"
                 echo "$vm_ip"
                 return
